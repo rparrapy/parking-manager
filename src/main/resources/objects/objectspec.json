@@ -1,0 +1,238 @@
+[
+  {
+    "name": "Addressable Text Display",
+    "id": 3341,
+    "instancetype": "single",
+    "mandatory": true,
+    "description": "Description: For writing to a text-only or text mode graphics display",
+    "resourcedefs": [
+      {
+        "id": 5527,
+        "name": "Text",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": true,
+        "type": "string",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "A string of text."
+      },
+      {
+        "id": 5528,
+        "name": "X Coordinate",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "integer",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "X Coordinate"
+      },
+      {
+        "id": 5529,
+        "name": "Y Coordinate",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "integer",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "Y Coordinate"
+      },
+      {
+        "id": 5545,
+        "name": "Max X Coordinate",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "integer",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "The highest X coordinate the display supports before wrapping to the next line"
+      },
+      {
+        "id": 5546,
+        "name": "Max Y Coordinate",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "integer",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "The highest Y coordinate the display supports before wrapping to the top line"
+      },
+      {
+        "id": 5530,
+        "name": "Clear Display",
+        "operations": "E",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "string",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "Command to clear the display."
+      },
+      {
+        "id": 5548,
+        "name": "Level",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "float",
+        "range": "0-100",
+        "units": "%",
+        "description": "Brightness control,float value between 0 and 100 as a percentage."
+      },
+      {
+        "id": 5531,
+        "name": "Contrast",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "float",
+        "range": "0-100",
+        "units": "%",
+        "description": "% Proportional control, integer value between 0 and 100 as a percentage."
+      },
+      {
+        "id": 5750,
+        "name": "Application Type",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "string",
+        "range": "",
+        "units": "",
+        "description": "The application type of the sensor or actuator as a string depending on the use case."
+      }
+    ]
+  },
+  {
+    "name": "Multiple Axis Joystick",
+    "id": 3345,
+    "instancetype": "multiple",
+    "mandatory": true,
+    "description": "Used for a 1 axis (shuttle) control, 2 axis control, or 3 axis control",
+    "resourcedefs": [
+      {
+        "id": 5500,
+        "name": "Digital Input State",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "boolean",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "The current state of a digital input."
+      },
+      {
+        "id": 5501,
+        "name": "Digital Input Counter",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "integer",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "The number of times the input transitions from 0 to 1"
+      },
+      {
+        "id": 5702,
+        "name": "X Value",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "float",
+        "range": "-100 +100",
+        "units": "%",
+        "description": "The measured value along the X axis."
+      },
+      {
+        "id": 5703,
+        "name": "Y Value",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "float",
+        "range": "-100 +100",
+        "units": "%",
+        "description": "The measured value along the Y axis."
+      },
+      {
+        "id": 5704,
+        "name": "Z Value",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "float",
+        "range": "-100 +100",
+        "units": "%",
+        "description": "The measured value along the Z axis."
+      },
+      {
+        "id": 5750,
+        "name": "Application Type",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": false,
+        "type": "string",
+        "range": "",
+        "units": "",
+        "description": "The application type of the sensor or actuator as a string depending on the use case."
+      }
+    ]
+  },
+  {
+    "name": "Parking Spot",
+    "id": 32700,
+    "instancetype": "single",
+    "mandatory": true,
+    "description": "Self defined object for parking spot device",
+    "resourcedefs": [
+      {
+        "id": 32800,
+        "name": "Parking Spot ID",
+        "operations": "R",
+        "instancetype": "single",
+        "mandatory": true,
+        "type": "string",
+        "range": "",
+        "units": "Defined by â€œUnitsâ€ resource.",
+        "description": "The ID number of the parking spot"
+      },
+      {
+        "id": 32801,
+        "name": "Parking Spot State",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": true,
+        "type": "string",
+        "range": "occupied, free, reserved",
+        "units": "",
+        "description": "The state of the parking spot whether it is occupied, free or reserved"
+      },
+      {
+        "id": 32802,
+        "name": "Vehicle ID",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": true,
+        "type": "string",
+        "range": "",
+        "units": "",
+        "description": "Vehicle id that is currently reserving or occupying the parking spot"
+      },
+      {
+        "id": 32803,
+        "name": "Billing Rate",
+        "operations": "RW",
+        "instancetype": "single",
+        "mandatory": true,
+        "type": "float",
+        "range": "",
+        "units": "EUR",
+        "description": "Billing rate of the parking spot per minute"
+      }
+    ]
+  }
+]
