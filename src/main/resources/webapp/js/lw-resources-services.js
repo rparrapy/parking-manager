@@ -271,7 +271,7 @@ myModule.factory('lwResources',["$http", function($http) {
         if (objectDefs){
             callback(objectDefs);
         }else{
-            $http.get("api/objectspecs")
+            $http.get("http://localhost:8080/api/objectspecs")
             .success(function(data, status, headers, config) {
                 if (data) {
                     objectDefs = data

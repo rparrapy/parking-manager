@@ -59,7 +59,7 @@ angular.module('resourceDirectives', [])
             }
 
             scope.startObserve = function() {
-                var uri = "api/clients/" + $routeParams.clientId + scope.resource.path+"/observe";
+                var uri = "http://localhost:8080/api/clients/" + $routeParams.clientId + scope.resource.path+"/observe";
                 $http.post(uri)
                 .success(function(data, status, headers, config) {
                     var observe = scope.resource.observe;
@@ -93,7 +93,7 @@ angular.module('resourceDirectives', [])
             };
             
             scope.stopObserve = function() {
-                var uri = "api/clients/" + $routeParams.clientId + scope.resource.path + "/observe";
+                var uri = "http://localhost:8080/api/clients/" + $routeParams.clientId + scope.resource.path + "/observe";
                 $http.delete(uri)
                 .success(function(data, status, headers, config) {
                     scope.resource.observed = false;
@@ -107,7 +107,7 @@ angular.module('resourceDirectives', [])
             
             
             scope.read = function() {
-                var uri = "api/clients/" + $routeParams.clientId + scope.resource.path;
+                var uri = "http://localhost:8080/api/clients/" + $routeParams.clientId + scope.resource.path;
                 $http.get(uri)
                 .success(function(data, status, headers, config) {
                     // manage request information
@@ -157,7 +157,7 @@ angular.module('resourceDirectives', [])
                         value = lwResources.getTypedValue(value, scope.resource.def.type);
                         rsc["value"] = value;
 
-                        $http({method: 'PUT', url: "api/clients/" + $routeParams.clientId + scope.resource.path, data: rsc, headers:{'Content-Type': 'application/json'}})
+                        $http({method: 'PUT', url: "http://localhost:8080/api/clients/" + $routeParams.clientId + scope.resource.path, data: rsc, headers:{'Content-Type': 'application/json'}})
                         .success(function(data, status, headers, config) {
                             write = scope.resource.write;
                             write.date = new Date();
@@ -182,7 +182,7 @@ angular.module('resourceDirectives', [])
             };
 
             scope.exec = function() {
-                $http.post("api/clients/" + $routeParams.clientId+ scope.resource.path)
+                $http.post("http://localhost:8080/api/clients/" + $routeParams.clientId+ scope.resource.path)
                 .success(function(data, status, headers, config) {
                     var exec = scope.resource.exec;
                     exec.date = new Date();
@@ -208,7 +208,7 @@ angular.module('resourceDirectives', [])
                     if(value) {
                         $('#writeModal').modal('hide');
 
-                        $http({method: 'POST', url: "api/clients/" + $routeParams.clientId + scope.resource.path, data: value})
+                        $http({method: 'POST', url: "http://localhost:8080/api/clients/" + $routeParams.clientId + scope.resource.path, data: value})
                         .success(function(data, status, headers, config) {
                             exec = scope.resource.exec;
                             exec.date = new Date();

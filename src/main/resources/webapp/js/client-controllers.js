@@ -41,7 +41,7 @@ lwClientControllers.controller('ClientListCtrl', [
         };
 
         // get the list of connected clients
-        $http.get('api/clients'). error(function(data, status, headers, config){
+        $http.get('http://localhost:8080/api/clients'). error(function(data, status, headers, config){
             $scope.error = "Unable get client list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
@@ -104,7 +104,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
         $scope.clientId = $routeParams.clientId;
 
         // get client details
-        $http.get('api/clients/' + $routeParams.clientId)
+        $http.get('http://localhost:8080/api/clients/' + $routeParams.clientId)
         .error(function(data, status, headers, config) {
             $scope.error = "Unable get client " + $routeParams.clientId+" : "+ status + " " + data;  
             console.error($scope.error);

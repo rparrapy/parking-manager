@@ -27,7 +27,7 @@ angular.module('securityControllers', [])
         angular.element("#security-navlink").addClass('active');
 
         // get the list of security info by end-point
-        $http.get('api/security/clients'). error(function(data, status, headers, config){
+        $http.get('http://localhost:8080/api/security/clients'). error(function(data, status, headers, config){
             $scope.error = "Unable to get the clients security info list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
@@ -37,7 +37,7 @@ angular.module('securityControllers', [])
             }
         });
 
-        $http.get('api/security/server'). error(function(data, status, headers, config){
+        $http.get('http://localhost:8080/api/security/server'). error(function(data, status, headers, config){
             $scope.error = "Unable to get the server security info list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
@@ -45,7 +45,7 @@ angular.module('securityControllers', [])
         });
 
         $scope.remove = function(endpoint) {
-            $http({method: 'DELETE', url: "api/security/clients/" + endpoint, headers:{'Content-Type': 'text/plain'}})
+            $http({method: 'DELETE', url: "http://localhost:8080/api/security/clients/" + endpoint, headers:{'Content-Type': 'text/plain'}})
             .success(function(data, status, headers, config) {
                 delete $scope.securityInfos[endpoint];
            }).error(function(data, status, headers, config) {
@@ -65,7 +65,7 @@ angular.module('securityControllers', [])
                     var security = {endpoint: $scope.endpoint, rpk : { x : $scope.rpkXValue , y : $scope.rpkYValue, params : $scope.rpkParamsValue || $scope.defaultParams}};
                 }
                 if(security) {
-                    $http({method: 'PUT', url: "api/security/clients/", data: security, headers:{'Content-Type': 'text/plain'}})
+                    $http({method: 'PUT', url: "http://localhost:8080/api/security/clients/", data: security, headers:{'Content-Type': 'text/plain'}})
                     .success(function(data, status, headers, config) {
                         $scope.securityInfos[$scope.endpoint] = security;
                         $('#newSecurityModal').modal('hide');

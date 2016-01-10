@@ -63,7 +63,7 @@ angular.module('objectDirectives', [])
                     }
                     // Send request
                     var instancepath  = scope.object.path + "/" + instance.id
-                    $http({method: 'POST', url: "api/clients/" + $routeParams.clientId + instancepath, data: payload, headers:{'Content-Type': 'application/json'}})
+                    $http({method: 'POST', url: "http://localhost:8080/api/clients/" + $routeParams.clientId + instancepath, data: payload, headers:{'Content-Type': 'application/json'}})
                     .success(function(data, status, headers, config) {
                         create = scope.object.create;
                         create.date = new Date();
