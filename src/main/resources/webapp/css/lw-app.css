@@ -60,9 +60,9 @@ li.navlink>a:focus{
 	text-decoration: underline;
 }
 
-#client-navlink.active>a,
-#client-navlink>a:hover,
-#client-navlink>a:focus {
+#parking-spot-navlink.active>a, #client-navlink.active>a,
+#parking-spot-navlink>a:hover, #client-navlink>a:hover,
+#parking-spot-navlink>a:focus, #client-navlink>a:focus {
 		color:#25A79C;
 }
 #security-navlink.active>a,
