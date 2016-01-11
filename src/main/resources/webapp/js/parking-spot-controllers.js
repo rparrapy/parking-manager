@@ -1,70 +1,52 @@
-/*******************************************************************************
- * Copyright (c) 2013-2015 Sierra Wireless and others.
- * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
- * 
- * The Eclipse Public License is available at
- *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
- *    http://www.eclipse.org/org/documents/edl-v10.html.
- * 
- * Contributors:
- *     Sierra Wireless - initial API and implementation
- *     Achim Kraus (Bosch Software Innovations GmbH) - fix typo in notificationCallback
- *                                                     processing multiple resources
- *******************************************************************************/
+var lwParkingSpotControllers = angular.module('parkingSpotControllers', []);
 
-var lwClientControllers = angular.module('clientControllers', []);
-
-lwClientControllers.controller('ClientListCtrl', [
+lwParkingSpotControllers.controller('ParkingSpotListCtrl', [
     '$scope',
     '$http',
     '$location',
-    function ClientListCtrl($scope, $http,$location) {
-        console.log("cli");
+    function ParkingSpotListCtrl($scope, $http,$location) {
+        console.log("ps");
         // update navbar
         angular.element("#navbar").children().removeClass('active');
-        angular.element("#client-navlink").addClass('active');
-
+        angular.element("#parking-spot-navlink").addClass('active');
+        
         // free resource when controller is destroyed
         $scope.$on('$destroy', function(){
             if ($scope.eventsource){
                 $scope.eventsource.close()
             }
         });
-
-        // add function to show client
-        $scope.showClient = function(client) {
-            $location.path('/clients/' + client.endpoint);
+        
+        // add function to show parking-spot
+        $scope.showParkingSpot = function(parkingSpot) {
+            $location.path('/parking-spots/' + parkingSpot.endpoint);
         };
-
+        
         // get the list of connected clients
         $http.get('http://localhost:8080/api/clients'). error(function(data, status, headers, config){
             $scope.error = "Unable get client list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
-            $scope.clients = data;
-
+            $scope.parkingSpots = data;
+        
             // HACK : we can not use ng-if="clients"
             // because of https://github.com/angular/angular.js/issues/3969
-            $scope.clientslist = true;
-
+            $scope.parkingspotslist = true;
+        
             // listen for clients registration/deregistration
             $scope.eventsource = new EventSource('event');
-
+        
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
-                    var client = JSON.parse(msg.data);
-                    $scope.clients.push(client);
+                    var parkingSpot = JSON.parse(msg.data);
+                    $scope.parkingSpots.push(parkingSpot);
                 });
             }
             $scope.eventsource.addEventListener('REGISTRATION', registerCallback, false);
-
-            var getClientIdx = function(client) {
-                for (var i = 0; i < $scope.clients.length; i++) {
-                    if ($scope.clients[i].registrationId == client.registrationId) {
+        
+            var getParkingSpotIdx = function(parkingSpot) {
+                for (var i = 0; i < $scope.parkingSpots.length; i++) {
+                    if ($scope.parkingSpots[i].registrationId == parkingSpot.registrationId) {
                         return i;
                     }
                 }
@@ -72,9 +54,9 @@ lwClientControllers.controller('ClientListCtrl', [
             }
             var deregisterCallback = function(msg) {
                 $scope.$apply(function() {
-                    var clientIdx = getClientIdx(JSON.parse(msg.data));
-                    if(clientIdx >= 0) {
-                        $scope.clients.splice(clientIdx, 1);
+                    var parkingSpotIdx = getParkingSpotIdx(JSON.parse(msg.data));
+                    if(parkingSpotIdx >= 0) {
+                        $scope.parkingSpots.splice(parkingSpotIdx, 1);
                     }
                 });
             }
@@ -82,7 +64,7 @@ lwClientControllers.controller('ClientListCtrl', [
         });
 }]);
 
-lwClientControllers.controller('ClientDetailCtrl', [
+lwParkingSpotControllers.controller('ParkingSpotDetailCtrl', [
     '$scope',
     '$location',
     '$routeParams',
@@ -92,53 +74,53 @@ lwClientControllers.controller('ClientDetailCtrl', [
     function($scope, $location, $routeParams, $http, lwResources,$filter) {
         // update navbar
         angular.element("#navbar").children().removeClass('active');
-        angular.element("#client-navlink").addClass('active');
-
+        angular.element("#parking-spot-navlink").addClass('active');
+    
         // free resource when controller is destroyed
         $scope.$on('$destroy', function(){
             if ($scope.eventsource){
                 $scope.eventsource.close()
             }
         });
-
-        $scope.clientId = $routeParams.clientId;
-
-        // get client details
-        $http.get('http://localhost:8080/api/clients/' + $routeParams.clientId)
+    
+        $scope.parkingSpotId = $routeParams.parkingSpotId;
+    
+        // get parkingSpot details
+        $http.get('http://localhost:8080/api/clients/' + $routeParams.parkingSpotId)
         .error(function(data, status, headers, config) {
-            $scope.error = "Unable get client " + $routeParams.clientId+" : "+ status + " " + data;  
+            $scope.error = "Unable get client " + $routeParams.parkingSpotId+" : "+ status + " " + data;  
             console.error($scope.error);
         })
         .success(function(data, status, headers, config) {
-            $scope.client = data;
-
-            // update resource tree with client details
-            lwResources.buildResourceTree($scope.client.rootPath, $scope.client.objectLinks, function (objects){
+            $scope.parkingSpot = data;
+    
+            // update resource tree with parkingSpot details
+            lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
                 $scope.objects = objects;
             });
-
-            // listen for clients registration/deregistration/observe
-            $scope.eventsource = new EventSource('event?ep=' + $routeParams.clientId);
-
+    
+            // listen for parkingSpots registration/deregistration/observe
+            $scope.eventsource = new EventSource('event?ep=' + $routeParams.parkingSpotId);
+    
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
                     $scope.deregistered = false;
-                    $scope.client = JSON.parse(msg.data);
-                    lwResources.buildResourceTree($scope.client.rootPath, $scope.client.objectLinks, function (objects){
+                    $scope.parkingSpot = JSON.parse(msg.data);
+                    lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
                         $scope.objects = objects;
                     });
                 });
             }
             $scope.eventsource.addEventListener('REGISTRATION', registerCallback, false);
-
+    
             var deregisterCallback = function(msg) {
                 $scope.$apply(function() {
                     $scope.deregistered = true;
-                    $scope.client = null;
+                    $scope.parkingSpot = null;
                 });
             }
             $scope.eventsource.addEventListener('DEREGISTRATION', deregisterCallback, false);
-
+    
             var notificationCallback = function(msg) {
                 $scope.$apply(function() {
                     var content = JSON.parse(msg.data);
@@ -158,7 +140,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
                         }
                         resource.valuesupposed = false;
                         resource.observed = true;
-
+    
                         var formattedDate = $filter('date')(new Date(), 'HH:mm:ss.sss');
                         resource.tooltip = formattedDate;
                     } else {
@@ -188,7 +170,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
                 });
             }
             $scope.eventsource.addEventListener('NOTIFICATION', notificationCallback, false);
-
+    
             $scope.coaplogs = [];
             var coapLogCallback = function(msg) {
                 $scope.$apply(function() {
@@ -199,7 +181,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
                 });
             }
             $scope.eventsource.addEventListener('COAPLOG', coapLogCallback, false);
-
+    
             // coap logs hidden by default
             $scope.coapLogsCollapsed = true;
             $scope.toggleCoapLogs = function() {
