@@ -20,3 +20,6 @@ target/
 parking-manager.iml
 data/
 Californium.properties
+.classpath
+.project
+.settings/
