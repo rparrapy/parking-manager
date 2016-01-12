@@ -14,13 +14,18 @@ import java.security.spec.ECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
+import java.util.Iterator;
 
+import org.eclipse.californium.core.CoapServer;
+import org.eclipse.californium.core.server.resources.Resource;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
 import org.eclipse.leshan.server.californium.impl.LeshanServer;
+import org.eclipse.leshan.server.californium.impl.RegisterResource;
 import org.eclipse.leshan.server.impl.SecurityRegistryImpl;
+import org.eclipse.leshan.server.registration.RegistrationHandler;
 import org.eclipse.leshan.standalone.LeshanStandalone;
 import org.eclipse.leshan.standalone.servlet.ClientServlet;
 import org.eclipse.leshan.standalone.servlet.EventServlet;
@@ -35,11 +40,11 @@ import org.slf4j.LoggerFactory;
  * Created by rparra on 5/1/16.
  */
 public class ParkingManager extends LeshanStandalone {
-    
-	private static final Logger LOG = LoggerFactory.getLogger(LeshanStandalone.class);
-	private Server server;
+
+    private static final Logger LOG = LoggerFactory.getLogger(LeshanStandalone.class);
+    private Server server;
     private LeshanServer lwServer;
-    
+
     public void start() {
         // Use those ENV variables for specifying the interface to be bound for coap and coaps
         String iface = System.getenv("COAPIFACE");
@@ -49,11 +54,11 @@ public class ParkingManager extends LeshanStandalone {
         LeshanServerBuilder builder = new LeshanServerBuilder();
         if (iface != null && !iface.isEmpty()) {
             builder.setLocalAddress(iface.substring(0, iface.lastIndexOf(':')),
-                Integer.parseInt(iface.substring(iface.lastIndexOf(':') + 1, iface.length())));
+                    Integer.parseInt(iface.substring(iface.lastIndexOf(':') + 1, iface.length())));
         }
         if (ifaces != null && !ifaces.isEmpty()) {
             builder.setLocalAddressSecure(ifaces.substring(0, ifaces.lastIndexOf(':')),
-                Integer.parseInt(ifaces.substring(ifaces.lastIndexOf(':') + 1, ifaces.length())));
+                    Integer.parseInt(ifaces.substring(ifaces.lastIndexOf(':') + 1, ifaces.length())));
         }
 
         // Get public and private server key
@@ -118,12 +123,13 @@ public class ParkingManager extends LeshanStandalone {
 
         ServletHolder objectSpecServletHolder = new ServletHolder(new ObjectSpecServlet());
         root.addServlet(objectSpecServletHolder, "/api/objectspecs/*");
-        
+
         //new Servlet for reservation flow
         ServletHolder reservationServletHolder = new ServletHolder(
                 new ReservationServlet(lwServer, lwServer.getSecureAddress().getPort()));
         root.addServlet(reservationServletHolder, "/api/reservation/*");
 
+        startSensing();
         // Start jetty
         try {
             server.start();
@@ -131,8 +137,28 @@ public class ParkingManager extends LeshanStandalone {
             LOG.error("jetty error", e);
         }
     }
-    
-  public static void main(String[] args) {
-      new ParkingManager().start();
-  }
+
+    private void startSensing() {
+        CoapServer coapServer = this.lwServer.getCoapServer();
+        // First we hotswap the registration handler
+        // define /rd resource
+        final RegisterResource rdResource = new RegisterResource(new SensingRegistrationHandler(this.lwServer.getClientRegistry(),
+                this.lwServer.getSecurityRegistry()));
+
+        for (Iterator<Resource> iterator = coapServer.getRoot().getChildren().iterator(); iterator.hasNext();) {
+            Resource r = iterator.next();
+            if(r instanceof RegisterResource) {
+                iterator.remove();
+            }
+        }
+
+        coapServer.add(rdResource);
+
+            //this.lwServer.getCoapServer().add(rdResource);
+
+    }
+
+    public static void main(String[] args) {
+        new ParkingManager().start();
+    }
 }
