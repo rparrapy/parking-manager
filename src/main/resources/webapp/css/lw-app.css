@@ -13,7 +13,12 @@
  * Contributors:
  *     Sierra Wireless - initial API and implementation
  */
-
+.ui-datepicker-next {
+	margin-left: 70px;
+}
+.ui-state-active {
+	background: #ccc;
+}
 .container {
 	max-width: 980px;
 }
