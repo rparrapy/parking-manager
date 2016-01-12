@@ -22,6 +22,7 @@ var leshanApp = angular.module('leshanApp',[
         'ngRoute',
         'clientControllers',
         'parkingSpotControllers',
+        'parkingSpotServices',
         'objectDirectives',
         'instanceDirectives',
         'resourceDirectives',
