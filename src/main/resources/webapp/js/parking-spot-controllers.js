@@ -1,49 +1,12 @@
-var lwParkingSpotControllers = angular.module('parkingSpotControllers', []);
+var parkingSpotControllers = angular.module('parkingSpotControllers', []);
 
-function getResourceValue(parkingSpot, objectPath, $http) {
-    var uri = "http://localhost:8080/api/clients/" + parkingSpot.endpoint + objectPath;
-    var ret = "";
-    $http.get(uri)
-    .success(function(data, status, headers, config) {
-        if (data.status == "CONTENT" && data.content) {
-            console.log(data.content.value);
-            ret = data.content.value;
-        }
-    }).error(function(data, status, headers, config) {
-        console.error("error")
-    });
-    return(ret);
-}
-
-function assignAttr(parkingSpot, $http) {
-    var mappings = {
-        "parkingSpotId": '/32700/0/32800',
-        "state": '/32700/0/32801',
-        "licensePlate": '/32700/0/32802'
-    }
-    for (var k in mappings) {
-        (function(key){ // anonymous function needed since otherwise key will always be last element of mappings
-            var objectPath = mappings[key];
-            var uri = "http://localhost:8080/api/clients/" + parkingSpot.endpoint + objectPath;
-            $http.get(uri)
-            .success(function(data, status, headers, config) {
-                if (data.status == "CONTENT" && data.content) {
-                    console.log(key + " - " + data.content.value);
-                    parkingSpot[key] = data.content.value;
-                }
-            }).error(function(data, status, headers, config) {
-                console.error("error")
-            });
-        })(k);
-    }
-}
-
-lwParkingSpotControllers.controller('ParkingSpotListCtrl', [
+parkingSpotControllers.controller('ParkingSpotListCtrl', [
     '$scope',
     '$http',
     '$location',
     'lwResources',
-    function ParkingSpotListCtrl($scope, $http,$location, lwResources) {
+    'parkingSpotServices',
+    function ParkingSpotListCtrl($scope, $http,$location, lwResources, parkingSpotServices) {
         // update navbar
         angular.element("#navbar").children().removeClass('active');
         angular.element("#parking-spot-navlink").addClass('active');
@@ -69,7 +32,7 @@ lwParkingSpotControllers.controller('ParkingSpotListCtrl', [
             
             $scope.parkingSpots.map(function(ps){
               
-              return(assignAttr(ps, $http));
+              return(parkingSpotServices.assignAttr(ps));
             });
             
             // HACK : we can not use ng-if="clients"
@@ -77,7 +40,7 @@ lwParkingSpotControllers.controller('ParkingSpotListCtrl', [
             $scope.parkingspotslist = true;
         
             // listen for clients registration/deregistration
-            $scope.eventsource = new EventSource('event');
+            $scope.eventsource = new EventSource('http://localhost:8080/event');
         
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
@@ -104,17 +67,26 @@ lwParkingSpotControllers.controller('ParkingSpotListCtrl', [
                 });
             }
             $scope.eventsource.addEventListener('DEREGISTRATION', deregisterCallback, false);
+            
+            
+            var notificationCallback = function(msg) {
+                console.log("--msg");
+                console.log(msg);
+            }
+            $scope.eventsource.addEventListener('NOTIFICATION', notificationCallback, false);
+
         });
 }]);
 
-lwParkingSpotControllers.controller('ParkingSpotDetailCtrl', [
+parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
     '$scope',
     '$location',
     '$routeParams',
     '$http',
     'lwResources',
     '$filter',
-    function($scope, $location, $routeParams, $http, lwResources,$filter) {
+    'parkingSpotServices',
+    function($scope, $location, $routeParams, $http, lwResources, $filter, parkingSpotServices) {
         // update navbar
         angular.element("#navbar").children().removeClass('active');
         angular.element("#parking-spot-navlink").addClass('active');
@@ -141,13 +113,11 @@ lwParkingSpotControllers.controller('ParkingSpotDetailCtrl', [
             // update resource tree with parkingSpot details
             lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
                 $scope.objects = objects;
-                $scope.parkingSpot.objects = objects;
-                objs = objects;
-                assignAttr($scope.parkingSpot, $http);
+                parkingSpotServices.assignAttr($scope.parkingSpot);
             });
     
             // listen for parkingSpots registration/deregistration/observe
-            $scope.eventsource = new EventSource('event?ep=' + $routeParams.parkingSpotId);
+            $scope.eventsource = new EventSource('http://localhost:8080/event?ep=' + $routeParams.parkingSpotId);
     
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
