@@ -23,16 +23,24 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             $location.path('/parking-spots/' + parkingSpot.endpoint);
         };
         
+        $scope.numParkingSpots = function(state) {
+            var ret = 0;
+            $scope.parkingSpots.forEach(function(ps){
+                if (ps !== undefined && ps.state == state) {
+                    ret++;
+                }
+            });
+            return(ret);
+        }
+        
         // get the list of connected clients
         $http.get('http://localhost:8080/api/clients'). error(function(data, status, headers, config){
             $scope.error = "Unable get client list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
-            $scope.parkingSpots = data;
-            
-            $scope.parkingSpots.map(function(ps){
-              
-              return(parkingSpotServices.assignAttr(ps));
+            $scope.parkingSpots = data.map(function(ps){
+                parkingSpotServices.startObserving(ps);
+                return(parkingSpotServices.assignAttr(ps));
             });
             
             // HACK : we can not use ng-if="clients"
@@ -45,6 +53,8 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
                     var parkingSpot = JSON.parse(msg.data);
+                    parkingSpot = parkingSpotServices.assignAttr(parkingSpot);
+                    parkingSpotServices.startObserving(parkingSpot);
                     $scope.parkingSpots.push(parkingSpot);
                 });
             }
@@ -70,8 +80,7 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             
             
             var notificationCallback = function(msg) {
-                console.log("--msg");
-                console.log(msg);
+                parkingSpotServices.notificationCallback(msg, $scope);
             }
             $scope.eventsource.addEventListener('NOTIFICATION', notificationCallback, false);
 
@@ -114,6 +123,7 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
             lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
                 $scope.objects = objects;
                 parkingSpotServices.assignAttr($scope.parkingSpot);
+                parkingSpotServices.startObserving($scope.parkingSpot);
             });
     
             // listen for parkingSpots registration/deregistration/observe
