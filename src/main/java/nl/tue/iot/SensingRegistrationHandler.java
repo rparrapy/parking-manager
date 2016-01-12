@@ -16,6 +16,8 @@ import org.eclipse.leshan.server.registration.RegistrationHandler;
 import org.eclipse.leshan.server.security.SecurityStore;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by rparra on 12/1/16.
@@ -24,17 +26,19 @@ public class SensingRegistrationHandler extends RegistrationHandler {
 
     private SecurityStore securityStore;
     private ClientRegistry clientRegistry;
+    private Map<String, Integer> stateRegistry;
 
     public SensingRegistrationHandler(ClientRegistry clientRegistry, SecurityStore securityStore) {
         super(clientRegistry, securityStore);
         this.securityStore = securityStore;
         this.clientRegistry = clientRegistry;
+        this.stateRegistry = new HashMap<>();
     }
 
     @Override
     public RegisterResponse register(Identity sender, RegisterRequest registerRequest, InetSocketAddress serverEndpoint) {
         RegisterResponse response = super.register(sender, registerRequest, serverEndpoint);
-        Client client = clientRegistry.findByRegistrationId(response.getRegistrationID());
+        final Client client = clientRegistry.findByRegistrationId(response.getRegistrationID());
 
         String yValueTarget = "/3345/0/5703";
         String clientAddr = client.getAddress().getHostAddress();
@@ -43,7 +47,7 @@ public class SensingRegistrationHandler extends RegistrationHandler {
         String stateTarget = "/32700/0/32801";
         final CoapClient stateClient = new CoapClient(uriPrefix + stateTarget);
 
-
+        stateRegistry.put(client.getRegistrationId(), -100);
 
         CoapClient yValueCoapClient = new CoapClient(uriPrefix + yValueTarget);
         System.out.println(uriPrefix + yValueTarget);
@@ -53,14 +57,17 @@ public class SensingRegistrationHandler extends RegistrationHandler {
             @Override public void onLoad(CoapResponse response) {
                 float yValue = Float.parseFloat(response.getResponseText());
                 String state = "";
-                if(yValue == 100) {
+
+                if(yValue == 100 && yValue != stateRegistry.get(client.getRegistrationId())) {
                     stateClient.put("occupied", MediaTypeRegistry.TEXT_PLAIN);
                     System.out.println("changed to ocuppied");
+                    stateRegistry.put(client.getRegistrationId(), 100);
                 }
 
-                if(yValue == -100) {
+                if(yValue == -100 && yValue != stateRegistry.get(client.getRegistrationId())) {
                     stateClient.put("free", MediaTypeRegistry.TEXT_PLAIN);
                     System.out.println("changed to free");
+                    stateRegistry.put(client.getRegistrationId(), -100);
                 }
             }
 
