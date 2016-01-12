@@ -96,9 +96,9 @@ public class ReservationServlet extends HttpServlet {
         if (req.getPathInfo() == null) {
         	
             Collection<Client> clients = server.getClientRegistry().allClients();
-            List<ParkingClientObject> reservationList = new ArrayList<ParkingClientObject>();
-            ParkingClientObject reserveObject = new ParkingClientObject();
+            List<ParkingClientObject> reservationList = new ArrayList<ParkingClientObject>();            
             for (Client client : clients) {
+            	ParkingClientObject pcObject = new ParkingClientObject();
                 String endPoint = client.getEndpoint();
 
                 System.out.println("endpoint :" + endPoint);
@@ -110,9 +110,9 @@ public class ReservationServlet extends HttpServlet {
                 LwM2mObjectInstance location = locationNode.getInstance(0);
                 String latitude = (String) location.getResource(0).getValue();
                 String longitude = (String) location.getResource(1).getValue();
-                reserveObject.setLatitude(latitude);
-                reserveObject.setLongitude(longitude);
-                reserveObject.setEndPoint(endPoint);
+                pcObject.setLatitude(latitude);
+                pcObject.setLongitude(longitude);
+                pcObject.setEndPoint(endPoint);
 
                 String spotTarget = "/32700";
                 ReadRequest spotRequest = new ReadRequest(spotTarget);
@@ -125,9 +125,9 @@ public class ReservationServlet extends HttpServlet {
                     String vehicleId = (String) entry.getValue().getResource(32802).getValue();
                     Double billingRate = (Double) entry.getValue().getResource(32803).getValue();
                     ParkingSpot ps = new ParkingSpot(spotId, spotState, vehicleId);
-                    reserveObject.getSpotList().add(ps);
+                    pcObject.getSpotList().add(ps);
                 }
-                reservationList.add(reserveObject);
+                reservationList.add(pcObject);
 
                 // LinkObject[] linkObjects = client.getSortedObjectLinks();
                 /*
@@ -246,18 +246,26 @@ public class ReservationServlet extends HttpServlet {
             // hack to reserve parking spot--------------------------
             String content2 = "";
             String target2 = "";
+            String contentColor = "";
+            String targetColor = "";
             if ("reserve".equalsIgnoreCase(action)) {
                 content2 = "{'id':'32801','value':'reserved'}";
                 int i = target.lastIndexOf('/');
                 target2 = target.substring(0, i + 1) + "32801";
+                contentColor = "{'id':'5527','value':'orange'}";
+                targetColor = "/3341/0/5527";
             }
 
             LwM2mNode node2 = null;
+            LwM2mNode nodeColor = null;
             try {
                 node2 = gson.fromJson(content2, LwM2mNode.class);
+                nodeColor = gson.fromJson(contentColor, LwM2mNode.class);
             } catch (JsonSyntaxException e) {
                 throw new IllegalArgumentException("unable to parse json to tlv:" + e.getMessage(), e);
             }
+
+            server.send(client, new WriteRequest(Mode.REPLACE, null, targetColor, nodeColor), TIMEOUT);
             server.send(client, new WriteRequest(Mode.REPLACE, null, target2, node2), TIMEOUT);
             // hack ---------------------
 
