@@ -7,13 +7,13 @@
 	</div>
 	<div class="row">
 		<div class="col-md-4 text-right">
-			Free: 
+			Free: {{numParkingSpots("free")}}
 		</div>
 		<div class="col-md-4 text-center">
-			Reserved: 
+			Reserved: {{numParkingSpots("reserved")}}
 		</div>
 		<div class="col-md-4 text-left">
-			Occupied: 
+			Occupied: {{numParkingSpots("occupied")}}
 		</div>
 	</div>
 	<hr>
@@ -24,16 +24,16 @@
 			<tr>
 				<th>ID</th>
 				<th>State</th>
-				<th>License Plate</th>
-				<th>Billing</th>
+				<th>Vehicle ID</th>
+				<th>Billing Rate</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr ng-repeat="parkingSpot in parkingSpots" ng-click="showParkingSpot(parkingSpot)">
-				<td><a ng-href="#/parking-spots/{{parkingSpot.endpoint}}"> <strong>{{parkingSpot.parkingSpotId}}</strong></a></td>
+				<td><a ng-href="#/parking-spots/{{parkingSpot.endpoint}}"> <strong>{{parkingSpot.id}}</strong></a></td>
 				<td>{{parkingSpot.state}}</td>
-				<td>{{parkingSpot.licensePlate}}</td>
-				<td></td>
+				<td>{{parkingSpot.vehicleId}}</td>
+				<td>{{parkingSpot.billingRate}}</td>
 			</tr>
 		</tbody>
 		</table>
