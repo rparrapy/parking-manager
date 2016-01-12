@@ -23,16 +23,24 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             $location.path('/parking-spots/' + parkingSpot.endpoint);
         };
         
+        $scope.numParkingSpots = function(state) {
+            var ret = 0;
+            $scope.parkingSpots.forEach(function(ps){
+                if (ps !== undefined && ps.state == state) {
+                    ret++;
+                }
+            });
+            return(ret);
+        }
+        
         // get the list of connected clients
         $http.get('http://localhost:8080/api/clients'). error(function(data, status, headers, config){
             $scope.error = "Unable get client list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
-            $scope.parkingSpots = data;
-            
-            $scope.parkingSpots.map(function(ps){
-              
-              return(parkingSpotServices.assignAttr(ps));
+            $scope.parkingSpots = data.map(function(ps){
+                parkingSpotServices.startObserving(ps);
+                return(parkingSpotServices.assignAttr(ps));
             });
             
             // HACK : we can not use ng-if="clients"
@@ -45,6 +53,8 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
                     var parkingSpot = JSON.parse(msg.data);
+                    parkingSpot = parkingSpotServices.assignAttr(parkingSpot);
+                    parkingSpotServices.startObserving(parkingSpot);
                     $scope.parkingSpots.push(parkingSpot);
                 });
             }
@@ -70,8 +80,7 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             
             
             var notificationCallback = function(msg) {
-                console.log("--msg");
-                console.log(msg);
+                parkingSpotServices.notificationCallback(msg, $scope);
             }
             $scope.eventsource.addEventListener('NOTIFICATION', notificationCallback, false);
 
@@ -90,6 +99,11 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
         // update navbar
         angular.element("#navbar").children().removeClass('active');
         angular.element("#parking-spot-navlink").addClass('active');
+        $( "#datepicker" ).datepicker({
+            onSelect: function( selectedDate ) {
+                console.log(selectedDate);
+            }
+        });
     
         // free resource when controller is destroyed
         $scope.$on('$destroy', function(){
@@ -114,95 +128,7 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
             lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
                 $scope.objects = objects;
                 parkingSpotServices.assignAttr($scope.parkingSpot);
+                parkingSpotServices.startObserving($scope.parkingSpot);
             });
-    
-            // listen for parkingSpots registration/deregistration/observe
-            $scope.eventsource = new EventSource('http://localhost:8080/event?ep=' + $routeParams.parkingSpotId);
-    
-            var registerCallback = function(msg) {
-                $scope.$apply(function() {
-                    $scope.deregistered = false;
-                    $scope.parkingSpot = JSON.parse(msg.data);
-                    lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
-                        $scope.objects = objects;
-                    });
-                });
-            }
-            $scope.eventsource.addEventListener('REGISTRATION', registerCallback, false);
-    
-            var deregisterCallback = function(msg) {
-                $scope.$apply(function() {
-                    $scope.deregistered = true;
-                    $scope.parkingSpot = null;
-                });
-            }
-            $scope.eventsource.addEventListener('DEREGISTRATION', deregisterCallback, false);
-    
-            var notificationCallback = function(msg) {
-                $scope.$apply(function() {
-                    var content = JSON.parse(msg.data);
-                    var resource = lwResources.findResource($scope.objects, content.res);
-                    if (resource) {
-                        if("value" in content.val) {
-                            // single value
-                            resource.value = content.val.value
-                        }
-                        else if("values" in content.val) {
-                            // multiple instances
-                            var tab = new Array();
-                            for (var i in content.val.values) {
-                                tab.push(i+"="+content.val.values[i])
-                            }
-                            resource.value = tab.join(", ");
-                        }
-                        resource.valuesupposed = false;
-                        resource.observed = true;
-    
-                        var formattedDate = $filter('date')(new Date(), 'HH:mm:ss.sss');
-                        resource.tooltip = formattedDate;
-                    } else {
-                        // instance?
-                        var instance = lwResources.findInstance($scope.objects, content.res);
-                        if (instance) {
-                            instance.observed = true;
-                            for(var i in content.val.resources) {
-                                var tlvresource = content.val.resources[i];
-                                resource = lwResources.addResource(instance.parent, instance, tlvresource.id, null)
-                                if("value" in tlvresource) {
-                                    // single value
-                                    resource.value = tlvresource.value
-                                } else if("values" in tlvresource) {
-                                    // multiple instances
-                                    var tab = new Array();
-                                    for (var j in tlvresource.values) {
-                                        tab.push(j+"="+tlvresource.values[j])
-                                    }
-                                    resource.value = tab.join(", ");
-                                }
-                                resource.valuesupposed = false;
-                                resource.tooltip = formattedDate;
-                            }
-                        }
-                    } // TODO object level
-                });
-            }
-            $scope.eventsource.addEventListener('NOTIFICATION', notificationCallback, false);
-    
-            $scope.coaplogs = [];
-            var coapLogCallback = function(msg) {
-                $scope.$apply(function() {
-                    var log = JSON.parse(msg.data);
-                    log.date = $filter('date')(new Date(log.timestamp), 'HH:mm:ss.sss');
-                    console.log(log);
-                    $scope.coaplogs.push(log);
-                });
-            }
-            $scope.eventsource.addEventListener('COAPLOG', coapLogCallback, false);
-    
-            // coap logs hidden by default
-            $scope.coapLogsCollapsed = true;
-            $scope.toggleCoapLogs = function() {
-                $scope.coapLogsCollapsed = !$scope.coapLogsCollapsed;
-            }
         });
 }]);
