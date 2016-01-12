@@ -12,6 +12,7 @@
     </description>
 
     <filter>
+        <async-supported>true</async-supported>
         <filter-name>cross-origin</filter-name>
         <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
         <init-param>

@@ -52,9 +52,10 @@ lwClientControllers.controller('ClientListCtrl', [
             $scope.clientslist = true;
 
             // listen for clients registration/deregistration
-            $scope.eventsource = new EventSource('event');
+            $scope.eventsource = new EventSource('http://localhost:8080/event');
 
             var registerCallback = function(msg) {
+                console.log("-register");
                 $scope.$apply(function() {
                     var client = JSON.parse(msg.data);
                     $scope.clients.push(client);
@@ -71,6 +72,7 @@ lwClientControllers.controller('ClientListCtrl', [
                 return -1;
             }
             var deregisterCallback = function(msg) {
+                console.log("-deregister");
                 $scope.$apply(function() {
                     var clientIdx = getClientIdx(JSON.parse(msg.data));
                     if(clientIdx >= 0) {
@@ -118,10 +120,11 @@ lwClientControllers.controller('ClientDetailCtrl', [
             });
 
             // listen for clients registration/deregistration/observe
-            $scope.eventsource = new EventSource('event?ep=' + $routeParams.clientId);
+            $scope.eventsource = new EventSource('http://localhost:8080/event?ep=' + $routeParams.clientId);
 
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
+                    console.log("-register");
                     $scope.deregistered = false;
                     $scope.client = JSON.parse(msg.data);
                     lwResources.buildResourceTree($scope.client.rootPath, $scope.client.objectLinks, function (objects){
@@ -132,6 +135,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
             $scope.eventsource.addEventListener('REGISTRATION', registerCallback, false);
 
             var deregisterCallback = function(msg) {
+                console.log("-deregister");
                 $scope.$apply(function() {
                     $scope.deregistered = true;
                     $scope.client = null;
@@ -140,6 +144,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
             $scope.eventsource.addEventListener('DEREGISTRATION', deregisterCallback, false);
 
             var notificationCallback = function(msg) {
+                console.log("-notification");
                 $scope.$apply(function() {
                     var content = JSON.parse(msg.data);
                     var resource = lwResources.findResource($scope.objects, content.res);
@@ -191,6 +196,7 @@ lwClientControllers.controller('ClientDetailCtrl', [
 
             $scope.coaplogs = [];
             var coapLogCallback = function(msg) {
+                console.log("-coaplog");
                 $scope.$apply(function() {
                     var log = JSON.parse(msg.data);
                     log.date = $filter('date')(new Date(log.timestamp), 'HH:mm:ss.sss');

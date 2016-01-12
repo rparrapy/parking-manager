@@ -40,7 +40,7 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
             $scope.parkingspotslist = true;
         
             // listen for clients registration/deregistration
-            $scope.eventsource = new EventSource('event');
+            $scope.eventsource = new EventSource('http://localhost:8080/event');
         
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
@@ -67,6 +67,14 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
                 });
             }
             $scope.eventsource.addEventListener('DEREGISTRATION', deregisterCallback, false);
+            
+            
+            var notificationCallback = function(msg) {
+                console.log("--msg");
+                console.log(msg);
+            }
+            $scope.eventsource.addEventListener('NOTIFICATION', notificationCallback, false);
+
         });
 }]);
 
@@ -109,7 +117,7 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
             });
     
             // listen for parkingSpots registration/deregistration/observe
-            $scope.eventsource = new EventSource('event?ep=' + $routeParams.parkingSpotId);
+            $scope.eventsource = new EventSource('http://localhost:8080/event?ep=' + $routeParams.parkingSpotId);
     
             var registerCallback = function(msg) {
                 $scope.$apply(function() {
