@@ -1,0 +1,18 @@
+<div class="row">
+	<div class="col-md-3">
+		<div id="datepicker"></div>
+	</div>
+	<div class="col-md-9">
+		<h2>Bills on {{date | date:'yyyy.MM.dd'}}</h2>
+		<ul ng-if="parkingSpots.length > 0">
+			<li ng-repeat="parkingSpot in parkingSpots">
+				{{parkingSpot.parkingSpotId}} bills:
+				<ul mg-if="parkingSpot.bills.length > 0">
+					<li ng-repeat="bill in parkingSpot.bills">
+						{{bill.vehicleId}} - {{bill.billingAmount | currency:"€"}}
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</div>

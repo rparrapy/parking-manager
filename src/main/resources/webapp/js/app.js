@@ -40,6 +40,7 @@ leshanApp.config(['$routeProvider', '$locationProvider', function($routeProvider
         when('/clients/:clientId', { templateUrl : 'partials/client-detail.html', controller : 'ClientDetailCtrl' }).
         when('/parking-spots',     { templateUrl : 'partials/parking-spot-list.html', controller : 'ParkingSpotListCtrl' }).
         when('/parking-spots/:parkingSpotId', { templateUrl : 'partials/parking-spot-detail.html', controller : 'ParkingSpotDetailCtrl' }).
+        when('/bills',             { templateUrl : 'partials/bills.html', controller : 'BillsCtrl' }).
         when('/security',          { templateUrl : 'partials/security-list.html', controller : 'SecurityCtrl' }).
         otherwise({ redirectTo : '/clients' });
 }]);

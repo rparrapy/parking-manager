@@ -1,0 +1,28 @@
+[
+  {
+    "parkingSpotId": "ParkingSpot-22",
+    "bills": [
+      {
+        "vehicleId": "Vehicle-22-1",
+        "billingAmount": 5.00
+      },
+      {
+        "vehicleId": "Vehicle-22-2",
+        "billingAmount": 12.10
+      }
+    ]
+  },
+  {
+    "parkingSpotId": "ParkingSpot-14",
+    "bills": [
+      {
+        "vehicleId": "Vehicle-14-1",
+        "billingAmount": 6.85
+      },
+      {
+        "vehicleId": "Vehicle-22-2",
+        "billingAmount": 0.78
+      }
+    ]
+  }
+]

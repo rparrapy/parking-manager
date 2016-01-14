@@ -1,0 +1,10 @@
+[
+  {
+    "vehicleId": "Vehicle-22-1",
+    "billingAmount": 5.00
+  },
+  {
+    "vehicleId": "Vehicle-22-2",
+    "billingAmount": 12.10
+  }
+]

@@ -15,6 +15,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 
+import nl.tue.iot.reservation.BillsServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -118,6 +119,9 @@ public class ParkingManager extends LeshanStandalone {
 
         ServletHolder objectSpecServletHolder = new ServletHolder(new ObjectSpecServlet());
         root.addServlet(objectSpecServletHolder, "/api/objectspecs/*");
+
+        ServletHolder billsServletHolder = new ServletHolder(new BillsServlet(lwServer));
+        root.addServlet(billsServletHolder, "/api/bills/*");
         
         //new Servlet for reservation flow
         ServletHolder reservationServletHolder = new ServletHolder(

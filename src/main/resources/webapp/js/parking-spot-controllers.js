@@ -35,7 +35,7 @@ parkingSpotControllers.controller('ParkingSpotListCtrl', [
         
         // get the list of connected clients
         $http.get('http://localhost:8080/api/clients'). error(function(data, status, headers, config){
-            $scope.error = "Unable get client list: " + status + " " + data  
+            $scope.error = "Unable get parking spot list: " + status + " " + data  
             console.error($scope.error)
         }).success(function(data, status, headers, config) {
             $scope.parkingSpots = data.map(function(ps){
@@ -99,10 +99,23 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
         // update navbar
         angular.element("#navbar").children().removeClass('active');
         angular.element("#parking-spot-navlink").addClass('active');
-        $( "#datepicker" ).datepicker({
-            onSelect: function( selectedDate ) {
-                console.log(selectedDate);
-            }
+        $scope.parkingSpotId = $routeParams.parkingSpotId;
+        
+        var dateSelected = function(date) {
+            $scope.date = new Date(date);
+            var uriDate = $.datepicker.formatDate("yy-mm-dd", $scope.date);
+            $http.get('http://localhost:8080/api/bills/?parkingSpotId=' + $scope.parkingSpotId + '&date=' + uriDate)
+            .error(function(data, status, headers, config) {  
+                console.error("Unable get connect");
+            })
+            .success(function(data, status, headers, config) {
+                $scope.bills = data;
+            });
+        }
+        dateSelected(new Date());
+        
+        var datePicker = $("#datepicker").datepicker({
+            onSelect: dateSelected
         });
     
         // free resource when controller is destroyed
@@ -111,13 +124,11 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
                 $scope.eventsource.close()
             }
         });
-    
-        $scope.parkingSpotId = $routeParams.parkingSpotId;
-    
+        
         // get parkingSpot details
         $http.get('http://localhost:8080/api/clients/' + $routeParams.parkingSpotId)
         .error(function(data, status, headers, config) {
-            $scope.error = "Unable get client " + $routeParams.parkingSpotId+" : "+ status + " " + data;  
+            $scope.error = "Unable get parking spot " + $routeParams.parkingSpotId+" : "+ status + " " + data;  
             console.error($scope.error);
         })
         .success(function(data, status, headers, config) {
@@ -128,7 +139,49 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
             lwResources.buildResourceTree($scope.parkingSpot.rootPath, $scope.parkingSpot.objectLinks, function (objects){
                 $scope.objects = objects;
                 parkingSpotServices.assignAttr($scope.parkingSpot);
-                parkingSpotServices.startObserving($scope.parkingSpot);
             });
         });
 }]);
+
+
+parkingSpotControllers.controller('BillsCtrl', [
+    '$scope',
+    '$location',
+    '$routeParams',
+    '$http',
+    'lwResources',
+    '$filter',
+    'parkingSpotServices',
+    function($scope, $location, $routeParams, $http, lwResources, $filter, parkingSpotServices) {
+        // update navbar
+        angular.element("#navbar").children().removeClass('active');
+        angular.element("#bills-navlink").addClass('active');
+        $scope.parkingSpotId = $routeParams.parkingSpotId;
+        
+        var dateSelected = function(date) {
+            $scope.date = new Date(date);
+            var uriDate = $.datepicker.formatDate("yy-mm-dd", $scope.date);
+            console.log(uriDate);
+            $http.get('http://localhost:8080/api/bills/?date=' + uriDate)
+            .error(function(data, status, headers, config) {  
+                console.error("Unable get connect");
+            })
+            .success(function(data, status, headers, config) {
+                $scope.parkingSpots = data;
+            });
+        }
+        dateSelected(new Date());
+        
+        var datePicker = $("#datepicker").datepicker({
+            onSelect: dateSelected
+        });
+    
+        // free resource when controller is destroyed
+        $scope.$on('$destroy', function(){
+            if ($scope.eventsource){
+                $scope.eventsource.close()
+            }
+        });
+        
+}]);
+

@@ -13,6 +13,9 @@
  * Contributors:
  *     Sierra Wireless - initial API and implementation
  */
+ #datepicker {
+	 margin-top: 70px;
+ }
 .ui-datepicker-next {
 	margin-left: 70px;
 }
@@ -65,9 +68,9 @@ li.navlink>a:focus{
 	text-decoration: underline;
 }
 
-#parking-spot-navlink.active>a, #client-navlink.active>a,
-#parking-spot-navlink>a:hover, #client-navlink>a:hover,
-#parking-spot-navlink>a:focus, #client-navlink>a:focus {
+#bills-navlink.active>a, #parking-spot-navlink.active>a, #bills-navlink.active>a, #client-navlink.active>a,
+#bills-navlink>a:hover, #parking-spot-navlink>a:hover, #bills-navlink>a:hover, #client-navlink>a:hover,
+#bills-navlink>a:focus, #parking-spot-navlink>a:focus, #bills-navlink>a:focus, #client-navlink>a:focus {
 		color:#25A79C;
 }
 #security-navlink.active>a,
