@@ -1,39 +1,46 @@
 <span ng-if="parkingspotslist">
 	
+	<br><br>
 	<div class="row">
-		<div class="col-md-4 col-md-offset-4 text-center">
+		<div class="col-md-4 col-md-offset-4 text-center" style="font-size: 16px; padding-bottom: 20px;">
 			Connected parking spots: {{parkingSpots.length}}
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-4 text-right">
+		<div class="col-md-4 text-right sum-free">
 			Free: {{numParkingSpots("free")}}
 		</div>
-		<div class="col-md-4 text-center">
+		<div class="col-md-4 text-center sum-reserved">
 			Reserved: {{numParkingSpots("reserved")}}
 		</div>
-		<div class="col-md-4 text-left">
+		<div class="col-md-4 text-left sum-occupied">
 			Occupied: {{numParkingSpots("occupied")}}
 		</div>
 	</div>
-	<hr>
+	<br><br><br>
 
 	<div class="table-responsive" ng-if="parkingSpots.length >0">
-		<table class="table table-striped table-hover table-condensed table-href">
+		<table class="table table-condensed table-href">
 		<thead>
 			<tr>
 				<th>ID</th>
 				<th>State</th>
 				<th>Vehicle ID</th>
 				<th>Billing Rate</th>
+				<th>Billing amount so far</th>
 			</tr>
 		</thead>
 		<tbody>
-			<tr ng-repeat="parkingSpot in parkingSpots" ng-click="showParkingSpot(parkingSpot)">
+			<tr ng-repeat="parkingSpot in parkingSpots" ng-click="showParkingSpot(parkingSpot)" class="{{parkingSpot.state}}">
 				<td><a ng-href="#/parking-spots/{{parkingSpot.endpoint}}"> <strong>{{parkingSpot.id}}</strong></a></td>
 				<td>{{parkingSpot.state}}</td>
-				<td>{{parkingSpot.vehicleId}}</td>
-				<td>{{parkingSpot.billingRate}}</td>
+				<td>
+					<span ng-if="parkingSpot.state == 'reserved' || parkingSpot.state == 'occupied'">
+						{{parkingSpot.vehicleId}}
+					</span>
+				</td>
+				<td>{{parkingSpot.billingRate | number:2}}</td>
+				<td></td>
 			</tr>
 		</tbody>
 		</table>
