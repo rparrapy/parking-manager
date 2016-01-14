@@ -14,6 +14,11 @@
             <artifactId>leshan-standalone</artifactId>
             <version>0.1.11-M6</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>9.2.9.v20150224</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
