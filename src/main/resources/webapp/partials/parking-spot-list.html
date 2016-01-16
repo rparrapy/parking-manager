@@ -32,7 +32,7 @@
 		</thead>
 		<tbody>
 			<tr ng-repeat="parkingSpot in parkingSpots" ng-click="showParkingSpot(parkingSpot)" class="{{parkingSpot.state}}">
-				<td><a ng-href="#/parking-spots/{{parkingSpot.endpoint}}"> <strong>{{parkingSpot.id}}</strong></a></td>
+				<td><a ng-href="#/parking-spots/{{parkingSpot.endpoint}}/{{parkingSpot.id}}"> <strong>{{parkingSpot.id}}</strong></a></td>
 				<td>{{parkingSpot.state}}</td>
 				<td>
 					<span ng-if="parkingSpot.state == 'reserved' || parkingSpot.state == 'occupied'">

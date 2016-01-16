@@ -99,12 +99,12 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
         // update navbar
         angular.element("#navbar").children().removeClass('active');
         angular.element("#parking-spot-navlink").addClass('active');
-        $scope.parkingSpotId = $routeParams.parkingSpotId;
+        $scope.parkingSpotEndpoint = $routeParams.parkingSpotEndpoint;
         
         var dateSelected = function(date) {
             $scope.date = new Date(date);
             var uriDate = $.datepicker.formatDate("yy-mm-dd", $scope.date);
-            $http.get('http://localhost:8080/api/bills/?parkingSpotId=' + $scope.parkingSpotId + '&date=' + uriDate)
+            $http.get('http://localhost:8080/api/bills/?parkingSpotId=' + $routeParams.parkingSpotId + '&date=' + uriDate)
             .error(function(data, status, headers, config) {  
                 console.error("Unable get connect");
             })
@@ -126,9 +126,9 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
         });
         
         // get parkingSpot details
-        $http.get('http://localhost:8080/api/clients/' + $routeParams.parkingSpotId)
+        $http.get('http://localhost:8080/api/clients/' + $routeParams.parkingSpotEndpoint)
         .error(function(data, status, headers, config) {
-            $scope.error = "Unable get parking spot " + $routeParams.parkingSpotId+" : "+ status + " " + data;  
+            $scope.error = "Unable get parking spot " + $routeParams.parkingSpotEndpoint+" : "+ status + " " + data;  
             console.error($scope.error);
         })
         .success(function(data, status, headers, config) {
@@ -156,7 +156,7 @@ parkingSpotControllers.controller('BillsCtrl', [
         // update navbar
         angular.element("#navbar").children().removeClass('active');
         angular.element("#bills-navlink").addClass('active');
-        $scope.parkingSpotId = $routeParams.parkingSpotId;
+        $scope.parkingSpotEndpoint = $routeParams.parkingSpotEndpoint;
         
         var dateSelected = function(date) {
             $scope.date = new Date(date);
