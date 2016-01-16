@@ -1,5 +1,6 @@
 package nl.tue.iot;
 
+import nl.tue.iot.reservation.model.ReservationDao;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
@@ -27,12 +28,15 @@ public class SensingRegistrationHandler extends RegistrationHandler {
     private SecurityStore securityStore;
     private ClientRegistry clientRegistry;
     private Map<String, Integer> stateRegistry;
+    private Map<String, String> clienToSpot;
+
 
     public SensingRegistrationHandler(ClientRegistry clientRegistry, SecurityStore securityStore) {
         super(clientRegistry, securityStore);
         this.securityStore = securityStore;
         this.clientRegistry = clientRegistry;
         this.stateRegistry = new HashMap<>();
+        this.clienToSpot = new HashMap<>();
     }
 
     @Override
@@ -47,31 +51,43 @@ public class SensingRegistrationHandler extends RegistrationHandler {
         String stateTarget = "/32700/0/32801";
         final CoapClient stateClient = new CoapClient(uriPrefix + stateTarget);
 
+        String parkingSpotIdTarget = "/32700/0/32800";
+        final CoapClient parkingSpotIdClient = new CoapClient(uriPrefix + parkingSpotIdTarget);
+
+
         stateRegistry.put(client.getRegistrationId(), -100);
+
+        String parkingSpotId = parkingSpotIdClient.get().getResponseText();
+        clienToSpot.put(client.getRegistrationId(), parkingSpotId);
+
 
         CoapClient yValueCoapClient = new CoapClient(uriPrefix + yValueTarget);
         System.out.println(uriPrefix + yValueTarget);
 
         yValueCoapClient.observe(new CoapHandler() {
 
-            @Override public void onLoad(CoapResponse response) {
+            @Override
+            public void onLoad(CoapResponse response) {
                 float yValue = Float.parseFloat(response.getResponseText());
                 String state = "";
 
-                if(yValue == 100 && yValue != stateRegistry.get(client.getRegistrationId())) {
+                if (yValue == 100 && yValue != stateRegistry.get(client.getRegistrationId())) {
                     stateClient.put("occupied", MediaTypeRegistry.TEXT_PLAIN);
                     System.out.println("changed to ocuppied");
                     stateRegistry.put(client.getRegistrationId(), 100);
+                    ReservationDao.writeEventToDatabase(client.getEndpoint(), clienToSpot.get(client.getRegistrationId()), null, null, "occupy");
                 }
 
-                if(yValue == -100 && yValue != stateRegistry.get(client.getRegistrationId())) {
+                if (yValue == -100 && yValue != stateRegistry.get(client.getRegistrationId())) {
                     stateClient.put("free", MediaTypeRegistry.TEXT_PLAIN);
                     System.out.println("changed to free");
                     stateRegistry.put(client.getRegistrationId(), -100);
+                    ReservationDao.writeEventToDatabase(client.getEndpoint(), clienToSpot.get(client.getRegistrationId()), null, null, "free");
                 }
             }
 
-            @Override public void onError() {
+            @Override
+            public void onError() {
                 System.err.println("Error on setting the observe relation");
             }
         });

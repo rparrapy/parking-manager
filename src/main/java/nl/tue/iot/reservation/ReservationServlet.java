@@ -245,7 +245,7 @@ public class ReservationServlet extends HttpServlet {
 	            Double billingRate = (Double) spotInstance.getResource(32803).getValue();
 	            
 	            //write reservation info to mongodb
-	            ReservationDao.writeReservationToDatabase(client.getEndpoint(),spotId,vehicleId,billingRate,action);
+	            ReservationDao.writeEventToDatabase(client.getEndpoint(),spotId,vehicleId,billingRate,action);
             }
             // hack ---------------------
 

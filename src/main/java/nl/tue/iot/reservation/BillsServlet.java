@@ -26,11 +26,14 @@ public class BillsServlet extends HttpServlet {
     private final LwM2mServer server;
     public static MongoDatabase db;
     public static MongoClient mongoClient;
+    MongoCollection<Document> coll;
+
 
     public BillsServlet(LwM2mServer server) {
         this.server = server;
         this.mongoClient = new MongoClient("localhost", 27017);
         this.db = mongoClient.getDatabase("test");
+        this.coll = db.getCollection("events");
     }
 
     @Override
@@ -41,7 +44,6 @@ public class BillsServlet extends HttpServlet {
         FindIterable<Document> cursor;
         ArrayList ret = new ArrayList();
         System.out.println("-- " + date);
-        MongoCollection<Document> coll = db.getCollection("reservations");
         try {
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS\'Z\'");
             Date from = df.parse(date + "T00:00:00.000Z");
@@ -64,17 +66,19 @@ public class BillsServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-//        Gson gson = new Gson();
-//        String json = gson.toJson(ret);
+        Gson gson = new Gson();
+        String json = gson.toJson(ret);
 
         if (parkingSpotId == null) {
             path = "all-parking-spot-bills.json";
         } else {
             path = "parking-spot-bills.json";
         }
-        byte[] sampleResponse = Files.readAllBytes(Paths.get(path));
+        //byte[] sampleResponse = Files.readAllBytes(Paths.get(path));
+        byte[] content = json.getBytes();
+
         resp.setContentType("application/json");
-        resp.getOutputStream().write(sampleResponse);
+        resp.getOutputStream().write(content);
         resp.setStatus(HttpServletResponse.SC_OK);
         return;
     }

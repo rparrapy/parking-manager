@@ -109,7 +109,16 @@ parkingSpotControllers.controller('ParkingSpotDetailCtrl', [
                 console.error("Unable get connect");
             })
             .success(function(data, status, headers, config) {
-                $scope.bills = data;
+                var result = _(data).sortBy("time").groupBy("vehicleId").map(function(events, vid) {
+                    var startTime = 0;
+                    var amount = _.reduce(events, function(sum, e) {
+                        if(e.action === "occupy") startTime = new Date(e.time).getTime();
+                        if(e.action === "free") sum += (new Date(e.time).getTime() - startTime)/1000 * e.billingRate;
+                        return sum;
+                    }, 0);
+                    return {vehicleId: vid, billingAmount: amount};
+                }).value();
+                $scope.bills = result;
             });
         }
         dateSelected(new Date());
@@ -167,7 +176,20 @@ parkingSpotControllers.controller('BillsCtrl', [
                 console.error("Unable get connect");
             })
             .success(function(data, status, headers, config) {
-                $scope.parkingSpots = data;
+                var parkingSpots = _(data).groupBy("parkingSpotId").map(function(events, p) {
+                    var pspot = {parkingSpotId: p};
+                    pspot.bills = _(events).sortBy("time").groupBy("vehicleId").map(function(events, vid) {
+                                      var startTime = 0;
+                                      var amount = _.reduce(events, function(sum, e) {
+                                          if(e.action === "occupy") startTime = new Date(e.time).getTime();
+                                          if(e.action === "free") sum += (new Date(e.time).getTime() - startTime)/1000 * e.billingRate;
+                                          return sum;
+                                      }, 0);
+                                      return {vehicleId: vid, billingAmount: amount};
+                                  }).value();
+                    return pspot;
+                }).value();
+                $scope.parkingSpots = parkingSpots;
             });
         }
         dateSelected(new Date());
