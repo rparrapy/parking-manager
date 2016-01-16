@@ -58,6 +58,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
+import nl.tue.iot.reservation.model.ReservationDao;
+
 /**
  * Service HTTP REST API calls.
  */
@@ -127,16 +129,7 @@ public class ReservationServlet extends HttpServlet {
                     ParkingSpot ps = new ParkingSpot(spotId, spotState, vehicleId);
                     pcObject.getSpotList().add(ps);
                 }
-                reservationList.add(pcObject);
-
-                // LinkObject[] linkObjects = client.getSortedObjectLinks();
-                /*
-                 * System.out.println("linkObjectAraay Length :" + linkObjects.length); for (LinkObject linkObject :
-                 * linkObjects) { if (linkObject.getObjectId() == 6) { System.out.println("Object Id" +
-                 * linkObject.getObjectId()); } Map<String, Object> map = linkObject.getAttributes();
-                 * System.out.println("LinkObjectMap size" + map.size()); for (Map.Entry<String, Object> entry :
-                 * map.entrySet()) { System.out.println(entry.getKey() + "/" + entry.getValue()); } }
-                 */
+                reservationList.add(pcObject);          
             }
             String json = this.gson.toJson(reservationList);
             // String json = this.gson.toJson(clients.toArray(new Client[] {}));
@@ -145,33 +138,6 @@ public class ReservationServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
             return;
         }
-
-         //Do not need the rest
-        /*
-         * String[] path = StringUtils.split(req.getPathInfo(), '/'); if (path.length < 1) {
-         * resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid path"); return; } String clientEndpoint =
-         * path[0];
-         * 
-         * // /endPoint : get client if (path.length == 1) { Client client =
-         * server.getClientRegistry().get(clientEndpoint); if (client != null) {
-         * resp.setContentType("application/json");
-         * resp.getOutputStream().write(this.gson.toJson(client).getBytes("UTF-8"));
-         * resp.setStatus(HttpServletResponse.SC_OK); } else { resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-         * resp.getWriter().format("no registered client with id '%s'", clientEndpoint).flush(); } return; }
-         * 
-         * // /clients/endPoint/LWRequest : do LightWeight M2M read request on a given client. try { String target =
-         * StringUtils.removeStart(req.getPathInfo(), "/" + clientEndpoint); Client client =
-         * server.getClientRegistry().get(clientEndpoint); if (client != null) { ReadRequest request = new
-         * ReadRequest(target); ReadResponse cResponse = server.send(client, request, TIMEOUT);
-         * processDeviceResponse(req, resp, cResponse); } else { resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-         * resp.getWriter().format("No registered client with id '%s'", clientEndpoint).flush(); } } catch
-         * (IllegalArgumentException e) { LOG.warn("Invalid request", e);
-         * resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); resp.getWriter().append(e.getMessage()).flush(); } catch
-         * (ResourceAccessException | RequestFailedException e) { LOG.warn(String.format(
-         * "Error accessing resource %s%s.", req.getServletPath(), req.getPathInfo()), e);
-         * resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-         * resp.getWriter().append(e.getMessage()).flush(); }
-         */
     }
 
     /**
@@ -241,6 +207,7 @@ public class ReservationServlet extends HttpServlet {
         } else if ("application/json".equals(contentType)) {
             String content = IOUtils.toString(req.getInputStream(), parameters.get("charset"));
             JsonObject jsonObject = gson.fromJson(content, JsonObject.class);
+            String vehicleId = jsonObject.get("value").getAsString();
             String action = jsonObject.get("action").getAsString();
 
             // hack to reserve parking spot--------------------------
@@ -254,19 +221,32 @@ public class ReservationServlet extends HttpServlet {
                 target2 = target.substring(0, i + 1) + "32801";
                 contentColor = "{'id':'5527','value':'orange'}";
                 targetColor = "/3341/0/5527";
+            
+	            LwM2mNode node2 = null;
+	            LwM2mNode nodeColor = null;
+	            try {
+	                node2 = gson.fromJson(content2, LwM2mNode.class);
+	                nodeColor = gson.fromJson(contentColor, LwM2mNode.class);
+	            } catch (JsonSyntaxException e) {
+	                throw new IllegalArgumentException("unable to parse json to tlv:" + e.getMessage(), e);
+	            }
+	
+	            server.send(client, new WriteRequest(Mode.REPLACE, null, targetColor, nodeColor), TIMEOUT);
+	            server.send(client, new WriteRequest(Mode.REPLACE, null, target2, node2), TIMEOUT);
+	            
+	            //get spot info
+	        	String spotTarget = "/32700";
+	            ReadRequest spotRequest = new ReadRequest(spotTarget);
+	            ReadResponse cSpotResponse = server.send(client, spotRequest, TIMEOUT);
+	            LwM2mObject spotNode = (LwM2mObject) cSpotResponse.getContent();
+	            LwM2mObjectInstance spotInstance = spotNode.getInstance(0);
+	            String spotId = (String) spotInstance.getResource(32800).getValue();
+	            //String spotState = (String) spotInstance.getResource(32801).getValue();	          
+	            Double billingRate = (Double) spotInstance.getResource(32803).getValue();
+	            
+	            //write reservation info to mongodb
+	            ReservationDao.writeReservationToDatabase(client.getEndpoint(),spotId,vehicleId,billingRate,action);
             }
-
-            LwM2mNode node2 = null;
-            LwM2mNode nodeColor = null;
-            try {
-                node2 = gson.fromJson(content2, LwM2mNode.class);
-                nodeColor = gson.fromJson(contentColor, LwM2mNode.class);
-            } catch (JsonSyntaxException e) {
-                throw new IllegalArgumentException("unable to parse json to tlv:" + e.getMessage(), e);
-            }
-
-            server.send(client, new WriteRequest(Mode.REPLACE, null, targetColor, nodeColor), TIMEOUT);
-            server.send(client, new WriteRequest(Mode.REPLACE, null, target2, node2), TIMEOUT);
             // hack ---------------------
 
             LwM2mNode node = null;
@@ -282,5 +262,9 @@ public class ReservationServlet extends HttpServlet {
                     "content type " + req.getContentType() + " not supported for write requests");
         }
     }
-
+    
+    public void destroy(){
+    	ReservationDao.closeConnection();
+    }
+            
 }
